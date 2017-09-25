@@ -1,0 +1,12 @@
+alien
+alpaca
+camel2
+coffee
+cricket
+debian
+eye
+kangaroo
+larry
+map_japan
+smiley
+
