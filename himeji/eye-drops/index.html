@@ -112,7 +112,7 @@ cpanのEyeDropsのページのBUGSには
 > If using Perl 5.18+, the generated file needs a leading "use re 'eval'" when a postive value for Regex is used.
 >
 
-ということで、Perl 5.18以降で動かすには、これが出てしまう。
+ということで、Perl 5.18以降で動かすには、use の一行が出てしまう。
 
 
 ---
@@ -129,7 +129,7 @@ print sightly({Shape       => 'camel',
                Regex => 2});
 ```
 
-とすれば、use 行は出ない。これを動かすには
+とすれば、use 行は出ない。この出力を動かすには
 
 ```
 -M"re 'eval'"
@@ -711,10 +711,21 @@ hello world
 $ 
 ```
 
+ビット演算で記号化したcodeを(?{ })で実行している。
+
+
 ---
 
 ## 注意
 * ここで使ったsedスクリプトは'eye'には動きますが、全ての結果で使えるものではありません。
+* スクリプトは https://github.com/nz-tcoder/slide/tree/master/himeji/eye-drops/code にあります。
+
+
+---
+
+## 参考サイト
+1. http://shinh.hatenablog.com/entries/2006/11/07#1162835826 今回の元ネタ
+1. http://gihyo.jp/dev/serial/01/perl-hackers-hub/001901?page=1 Acmeモジュール簡単な紹介
 	      
 	</section>
       </div>
