@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>漢直紹介</title>
+
+    <link rel="stylesheet" href="../../css/reveal.css">
+    <link rel="stylesheet" href="../../css/theme/black.css">
+
+    <!--  -->
+    <style type="text/css">
+      .reveal h1,
+      .reveal h2,
+      .reveal h3,
+      .reveal h4,
+      .reveal h5,
+      .reveal h6 {
+      text-transform: none;
+      }
+    </style>
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="../../lib/css/zenburn.css">
+
+    <style "text/css">
+      .reveal .slides blockquote {
+      text-align: left;
+      }
+    </style>
+    <style "text/css">
+      .reveal .slides p {
+      text-align: left;
+      }
+    </style>
+    
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+	<section data-markdown
+		 data-separator="^\n---\n$"
+		 data-separator-vertical="^\n--\n$">
+## 漢直紹介
+### nz_tcoder
+
+---
+
+## 漢直とは
+* 漢字直接入力
+* キーの打鍵の組み合わせで漢字一文字を表す。
+* T-codeでは、キー二打鍵が漢字一文字。
+ * 例: LX->野
+* T-code以外にも、TUT-code、G-code、超絶技巧入力などの方式あり。
+
+
+---
+
+## T-code
+* 右手用(20個)と左手用(20個)にキーを使う。
+* 右右、右左、左左、左右で、1600通りの中約1300に文字を割当。
+
+<pre>
+      左手用          右手用
+
+     1 2 3 4 5      6 7 8 9 0
+     Q W E R T      Y U I O P
+     A S D F G      H J K L ;
+     Z X C V B      N M , . /
+</pre>
+<pre>
+                           野 = {里, 予}
+・・・・      ・・・・
+・・・・      ・・●・     ●…第1打鍵
+・○・・      ・・・・     ○…第2打鍵
+</pre>
+
+---
+
+## T-code(環境)
+* Emacs:tc 
+* windows:漢直win
+* linux: uim
+
+---
+
+## 漢直にしてみて
+* ひらがなの入力が楽(対ローマ字変換)。
+* 「てにをは」のミス(気が付きにくい)をすることあり。
+* 文章中の漢字の数が減ったかもしれない。
+* 会社内の略称などの入力に辞書登録せずに使えることは多い。
+* 練習をしないと入力できる漢字は増えない。
+
+
+---
+
+## 練習風景
+練習ソフト「うなぎぎぎ(EELLL)」
+
+
+---
+
+## 漢直向きな人(私見)
+* ホームポジションに置いてキーボード入力する人。
+* 「6」は右手を入力する人。
+* 一度覚えたことを忘れても気にしない人。
+
+--
+
+## KINESISキーボード
+* good
+ * T-codeするなら、お奨め。
+ * 入力姿勢に無理がない。
+ * 親指が活躍できる。
+* bad
+ * 高い。
+ * かさばる。
+ * ファンクションキーが貧弱。
+
+---
+
+## 参考サイト
+* Home of T-code http://openlab.jp/tcode/
+* https://github.com/kanchoku
+ * emacs用のtcはどちらも古い。elpaからインストールするのが吉。
+* EELLL(うなぎぎぎ) on js https://miau.github.io/eljs/
+	      
+	</section>
+      </div>
+    </div>
+    
+    <script src="../../lib/js/head.min.js"></script>
+    <script src="../../js/reveal.js"></script>
+    
+    <script>
+      // More info about config & dependencies:
+      // - https://github.com/hakimel/reveal.js#configuration
+      // - https://github.com/hakimel/reveal.js#dependencies
+      Reveal.initialize({
+      slideNumber:'c/t',
+      width:'100%',
+      heiht:'100%',
+      margin:0.1,
+      dependencies: [
+      { src: '../../plugin/markdown/marked.js' },
+      { src: '../../plugin/markdown/markdown.js' },
+      { src: '../../plugin/notes/notes.js', async: true },
+      { src: '../../plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+      ]
+      });
+    </script>
+  </body>
+</html>
