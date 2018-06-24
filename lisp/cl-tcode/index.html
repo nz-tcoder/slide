@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>lemで漢字直接入力</title>
+
+    <link rel="stylesheet" href="../../css/reveal.css">
+    <link rel="stylesheet" href="../../css/theme/white.css">
+
+    <!--  -->
+    <style type="text/css">
+      .reveal h1,
+      .reveal h2,
+      .reveal h3,
+      .reveal h4,
+      .reveal h5,
+      .reveal h6 {
+      text-transform: none;
+      }
+    </style>
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="../../lib/css/zenburn.css">
+
+    <style "text/css">
+      .reveal .slides blockquote {
+      text-align: left;
+      }
+    </style>
+    <style "text/css">
+      .reveal .slides p {
+      text-align: left;
+      }
+    </style>
+    
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+	<section data-markdown
+		 data-separator="^\n---\n$"
+		 data-separator-vertical="^\n--\n$">
+## lemで漢字直接入力
+### nz_tcoder
+
+---
+
+## 目次
+* 自己紹介
+* lem
+* 漢直
+* cl-tcode
+* 今後
+
+---
+
+## 自己紹介
+* 名前: 野里 貴仁 (53才)
+* Lispとの関わり
+ * 大学のプログラミング授業 Franz Lisp
+ * Lispで卒論/修論 Kyoto Common Lisp
+* 実は他にもLispがあった <!-- .element: class="fragment" -->
+* Emacs Lisp <!-- .element: class="fragment" -->
+ * 自分を使うツールを作るという楽しみ
+ * ほしい機能は大体見つかる
+ * ソースを見て学ぶという体験
+
+
+---
+
+## lem
+
+* lemはCommon Lispで書かれたEmacsライクなエディタ
+* https://github.com/cxxxr/lem
+* Emacs Lispでやってたことが Common Lispでできる
+
+
+---
+
+
+## 漢字直接入力(漢直)
+* キーの打鍵の組み合わせで漢字一文字を表す。
+* T-codeでは、キー二打鍵が漢字一文字。
+ * 例: LX->野
+* T-code以外にも、TUT-code、G-code、超絶技巧入力などの方式あり。
+* T-code公式サイト http://openlab.jp/tcode/
+
+---
+
+
+## T-code
+* 右手用(20個)と左手用(20個)にキーを使う。
+* 右右、右左、左左、左右で、1600通りの中、約1300分の文字を割当。
+
+<pre>
+      左手用          右手用
+
+     1 2 3 4 5      6 7 8 9 0
+     Q W E R T      Y U I O P
+     A S D F G      H J K L ;
+     Z X C V B      N M , . /
+</pre>
+<pre>
+                           野 = {里, 予}
+・・・・      ・・・・
+・・・・      ・・●・     ●…第1打鍵
+・○・・      ・・・・     ○…第2打鍵
+</pre>
+
+
+---
+
+## cl-tcode
+* http://openlab.jp/tcode/tc2/index.html をcommon lispに移植(lem移植？)
+* https://github.com/nz-tcoder/cl-tcode で公開
+* tcとの違い
+ * ストロークは全てコマンドとして扱う。
+ * global変数はclosのオブジェクトとして実装。    
+
+
+---
+
+## 今後
+* 部首変換。
+* isearchでの入力。
+* 混ぜ書き用辞書への単語登録。
+* 各種ヘルプ機能。
+* 練習プログラム。
+
+
+---
+
+## 練習プログラム
+* tcにはEELLL(うなぎぎぎ)が付属
+* しかし、「うなぎぎぎ」と読むのはなぜ？ <!-- .element: class="fragment" -->
+* 元はCATTT(Compter Aided Touch Typing Trainer) <!-- .element: class="fragment" -->
+* T-code用練習プログラム DOGGG <!-- .element: class="fragment" -->
+* EELLL (ELisp implemented CATTT) <!-- .element: class="fragment" -->
+* 動物名(or 3文字英単語)の末尾を続ける？　<!-- .element: class="fragment" -->
+* lemで始まる動物名？　<!-- .element: class="fragment" -->
+* lemming <!-- .element: class="fragment" -->
+* 練習プログラムの名前は lemminggg(lem implemented CATTT)、読み方は「ねずみみみ」 にします <!-- .element: class="fragment" -->
+
+	</section>
+      </div>
+    </div>
+    
+    <script src="../../lib/js/head.min.js"></script>
+    <script src="../../js/reveal.js"></script>
+    
+    <script>
+      // More info about config & dependencies:
+      // - https://github.com/hakimel/reveal.js#configuration
+      // - https://github.com/hakimel/reveal.js#dependencies
+      Reveal.initialize({
+      slideNumber:'c/t',
+      width:'100%',
+      heiht:'100%',
+      margin:0.1,
+      dependencies: [
+      { src: '../../plugin/markdown/marked.js' },
+      { src: '../../plugin/markdown/markdown.js' },
+      { src: '../../plugin/notes/notes.js', async: true },
+      { src: '../../plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+      ]
+      });
+    </script>
+  </body>
+</html>
