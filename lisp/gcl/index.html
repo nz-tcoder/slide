@@ -1,0 +1,568 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>gclをビルド....</title>
+
+    <link rel="stylesheet" href="../../css/reveal.css">
+    <link rel="stylesheet" href="../../css/theme/black.css">
+
+    <!--  -->
+    <style type="text/css">
+      .reveal h1,
+      .reveal h2,
+      .reveal h3,
+      .reveal h4,
+      .reveal h5,
+      .reveal h6 {
+      text-transform: none;
+      }
+    </style>
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="../../lib/css/zenburn.css">
+
+    <style "text/css">
+      .reveal .slides blockquote {
+      text-align: left;
+      }
+    </style>
+    <style "text/css">
+      .reveal .slides p {
+      text-align: left;
+      }
+    </style>
+    
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+	<section data-markdown
+		 data-separator="^\n---\n$"
+		 data-separator-vertical="^\n--\n$">
+     <textarea data-template>
+## gclをビルド....
+### nz_tcoder
+
+---
+
+## 前回(#11の復習)
+* gcl-1.0 ubuntu 16.04でビルドできないか
+* コンパイルオプションやインクルードバスの変更
+* なぜかアセンブラでエラー
+* 可変個引数関数の関数定義は見直しが必要
+* lispからコンパイルされたCのコードで可変個引数関数が多数
+
+---
+
+## その後
+* lispはCにコンパイルせずともビルドする方法が判明。
+* raw_gclまではビルドできた。
+* raw_gclを実行すると、メモリの初期化で落ちる。
+* どう考えてもおかしいので、無理やりスキップさせた。
+* 初期化を終えて、top-level(lispで記述)を読み込んだ辺りのGCで落ちる。
+
+
+---
+
+
+## コンパイルオプション
+defs
+```
+# This CC string will be used for compilation of the system,
+# and also in the compiler::*cc* variable for later compilation of
+# lisp files.
+
+CC = gcc -m32 -fwritable-strings  -DVOL=volatile -I$(GCLDIR)/o 
+```
+
+結果
+
+```
+ke[1]: ディレクトリ '/home/nz_tcoder/prog/work/gcl-1.0/bin' に入ります
+gcc -fwritable-strings  -DVOL=volatile -I/home/nz_tcoder/prog/work/gcl-1.0/o  -DUNIX -o dpp dpp.c
+gcc: error: unrecognized command line option ‘-fwritable-strings’
+```
+
+
+--
+
+## 外してしまえ
+defs
+```
+# This CC string will be used for compilation of the system,
+# and also in the compiler::*cc* variable for later compilation of
+# lisp files.
+
+CC = gcc -m32 -DVOL=volatile -I$(GCLDIR)/o 
+```
+
+結果
+
+```
+make[1]: ディレクトリ '/home/nz_tcoder/prog/work/gcl-1.0/bin' に入ります
+gcc -m32 -DVOL=volatile -I/home/nz_tcoder/prog/work/gcl-1.0/o  -DUNIX -o dpp dpp.c
+
+...
+
+make[1]: ディレクトリ '/home/nz_tcoder/prog/work/gcl-1.0/bin' から出ます
+(cd mp ; make all)
+make[1]: ディレクトリ '/home/nz_tcoder/prog/work/gcl-1.0/mp' に入ります
+make all1 "MPFILES=./mpi-386d.o   ./libmport.a"
+
+```
+
+
+---
+
+
+## アセンブラでエラー
+
+```
+make[1]: ディレクトリ '/home/nz_tcoder/prog/work/gcl-1.0/mp' に入ります
+make all1 "MPFILES=./mpi-386d.o   ./libmport.a"
+make[2]: ディレクトリ '/home/nz_tcoder/prog/work/gcl-1.0/mp' に入ります
+as mpi-386d.s -o mpi-386d.o
+mpi-386d.s: Assembler messages:
+mpi-386d.s:8: Error: invalid instruction suffix for `push'
+mpi-386d.s:11: Error: invalid instruction suffix for `push'
+mpi-386d.s:12: Error: invalid instruction suffix for `push'
+...
+
+makefile:78: ターゲット 'mpi-386d.o' のレシピで失敗しました
+make[2]: *** [mpi-386d.o] エラー 1
+make[2]: ディレクトリ '/home/nz_tcoder/prog/work/gcl-1.0/mp' から出ます
+makefile:68: ターゲット 'all' のレシピで失敗しました
+```
+
+
+--
+
+
+## なぜアセンブラ？
+defs
+```
+# new gcc doesn't make a good .s file using optimisations.
+# so either use $(MPDIR)/mpi.o   $(MPDIR)/libmport.a
+#MPFILES= $(MPDIR)/mpi-386.o   $(MPDIR)/libmport.a
+
+MPFILES= $(MPDIR)/mpi-386d.o   $(MPDIR)/libmport.a
+
+```
+
+これか？
+
+
+--
+
+
+## アセンブラをやめる
+defs
+```
+# new gcc doesn't make a good .s file using optimisations.
+# so either use $(MPDIR)/mpi.o   $(MPDIR)/libmport.a
+#MPFILES= $(MPDIR)/mpi-386.o   $(MPDIR)/libmport.a
+
+#MPFILES= $(MPDIR)/mpi-386d.o   $(MPDIR)/libmport.a
+
+```
+
+結果
+```
+make all1 "MPFILES=./mpi.o ./mp2.o  ./libmport.a"
+make[2]: ディレクトリ '/home/nz_tcoder/prog/work/gcl-1.0/mp' に入ります
+gcc -m32 -DVOL=volatile -I/home/nz_tcoder/prog/work/gcl-1.0/o   -c -O  -I../h -I.  -O4 mpi.c
+
+...
+ar qc libmport.a mp_divul3.o  mp_bfffo.o mp_mulul3.o mp2.o mp_dblrsl3.o mp_dblrul3.o ./gnulib1.o
+ranlib libmport.a
+make[2]: ディレクトリ '/home/nz_tcoder/prog/work/gcl-1.0/mp' から出ます
+
+```
+
+--
+
+## 2019.7.13 追記
+* 7/6の発表時に「64ビット版のアセンブラだからでは？」の指摘。
+* オプションを調べると、`-32`があった。
+* `-32`を追加すると、エラーは回避。ただし、raw_gclの作成にはmpの関数のリンク関連で失敗する。
+
+```
+make[1]: ディレクトリ '/home/nz_tcoder/prog/gcl-1.0/mp' に入ります
+make all1 "MPFILES=./mpi-386d.o   ./libmport.a"
+make[2]: ディレクトリ '/home/nz_tcoder/prog/gcl-1.0/mp' に入ります
+as -32 mpi-386d.s -o mpi-386d.o
+gcc -m32 -DVOL=volatile -I/home/nz_tcoder/prog/gcl-1.0/o -g  -c  -I../h -I.   mp_divul3.c
+ ...
+
+```
+
+```
+../mp/libmport.a(mp2.o): 関数 `mpdivis' 内:
+/home/nz_tcoder/prog/gcl-1.0/mp/mp2.c:557: `dvmdii' に対する定義されていない参照です
+../mp/libmport.a(mp2.o): 関数 `divise' 内:
+/home/nz_tcoder/prog/gcl-1.0/mp/mp2.c:569: `dvmdii' に対する定義されていない参照です
+collect2: error: ld returned 1 exit status
+makefile:169: ターゲット 'raw_gcl1' のレシピで失敗しました
+```
+
+
+
+---
+
+
+## 可変個引数関数
+```
+In file included from ../c/bind.c:27:0:
+/usr/lib/gcc/x86_64-linux-gnu/5/include/varargs.h:4:2: error: #error "GCC no longer implements <varargs.h>."
+ #error "GCC no longer implements <varargs.h>."
+
+...
+
+./c/bind.c: In function ‘parse_key’:
+../c/bind.c:711:1: error: expected declaration specifiers before ‘va_dcl’
+ va_dcl
+
+```
+
+bind.c
+```
+parse_key(base, rest, allow_other_keys, n, va_alist)
+object *base;
+bool rest, allow_other_keys;
+register int n;
+va_dcl
+{       va_list ap;
+ 
+                va_start(ap);
+                for (i = 0;  i < n;  i++) {
+                        if (va_arg(ap,object) == k) {
+                                base[i] = temporary;
+                                top[i] = Ct;
+                                other_key = OBJNULL;
+                        } else {
+                                base[i] = Cnil;
+                                top[i] = Cnil;
+                        }
+                }
+                va_end(ap);
+```                    
+
+
+--
+
+
+## 対策
+```
+/* #include "varargs.h" */
+#include "stdarg.h"
+
+...
+
+void parse_key(object *base, bool rest, bool allow_other_keys, int n, ...)
+{       va_list ap;
+
+                va_start(ap,n);
+                for (i = 0;  i < n;  i++) {
+                    
+                        if (va_arg(ap,object) == k) {
+                                base[i] = temporary;
+                                top[i] = Ct;
+                                other_key = OBJNULL;
+                        } else {
+```
+
+
+--
+
+
+## どれくらいある？
+```
+$ grep va_alist c/*.c|wc
+      8      16     314
+$ grep va_alist lsp/*.c|wc
+    226    1368   24786
+$ grep va_alist cmpnew/*.c|wc
+    523    4053   74924
+$ 
+```
+
+lsp/とcmpnew/はlspをコンパイルしてcに変換したソース
+
+全部を書き換えるのは無理。
+
+
+
+--
+
+
+## どうする？
+* lspで書いたものをCからビルドするのは、おそらく高速化のため。
+* 動かすだけなら、lspのままビルドできるのでは？
+
+unixport/sys_boot.c
+```
+init_init()
+{
+
+  load("../lsp/export.lsp");
+  init_or_load(init_defmacro,"../lsp/defmacro.o");
+  init_or_load(init_evalmacros,"../lsp/evalmacros.o");
+  init_or_load(init_top,"../lsp/top.o");
+  init_or_load(init_module,"../lsp/module.o");
+  load("../lsp/autoload.lsp");
+}
+
+```
+
+
+--
+
+
+## sys_boot.c
+
+
+unixport/makefile
+```
+# create a sed script.
+boots : lspboots cmpboots
+        rm -f boots ; \
+        echo "# edit lspboots or cmpboots " >> boots ;\
+        for v in `cat lspboots cmpboots` ; \
+        do echo "s:$$v.o:$$v.lsp:g" >> boots ;\
+        echo "s:init_or_load(init_$$v,:load1(:g" >> boots ; \
+        done 
+
+
+sys_boot.o: sys_gcl.c $(HFILES) boots
+        rm -f sys_boot.c ; cat sys_gcl.c | sed -f boots > sys_boot.c
+        $(CC) $(CFLAGS) sys_boot.c
+
+```
+
+
+---
+
+## 最新状況
+raw_gcl
+
+```
+make[1]: ディレクトリ '/home/nz_tcoder/prog/gcl-1.0/unixport' に入ります
+rm -f raw_gcl 
+...
+
+gcc -m32 -DVOL=volatile -I/home/nz_tcoder/prog/gcl-1.0/o -g  -o raw_gcl ../o/main.o ../o/alloc.o ../o/gbc.o ../o/bitop.o ../o/typespec.o ../o/eval.o ../o/macros.o ../o/lex.o ../o/bds.o ../o/frame.o ../o/predicate.o 
+../o/reference.o ../o/assignment.o ../o/bind.o ../o/let.o ../o/conditional.o ../o/block.o ../o/iteration.o ../o/mapfun.o ../o/prog.o ../o/multival.o ../o/catch.o ../o/symbol.o ../o/cfun.o ../o/cmpaux.o ../o/package.o ../o/big.o
+ ../o/number.o ../o/num_pred.o ../o/num_comp.o ../o/num_arith.o ../o/num_sfun.o ../o/num_co.o
+ ../o/num_log.o ../o/num_rand.o ../o/earith.o ../o/character.o  ../o/sequence.o ../o/list.o ../o/hash.o ../o/array.o ../o/string.o ../o/structure.o ../o/toplevel.o ../o/file.o ../o/read.o
+ ../o/backq.o ../o/print.o ../o/format.o ../o/pathname.o ../o/unixfsys.o ../o/unixfasl.o ../o/error.o ../o/unixtime.o ../o/unixsys.o ../o/unixsave.o ../o/unixint.o ../o/funlink.o ../o/fat_string.o 
+../o/run_process.o ../o/init_pari.o ../mp/mpi.o ../mp/mp2.o  ../mp/libmport.a ../o/sfasl.o  sys_boot.o -lc -lm  ../o/gcllib.a
+../o/unixfsys.o: 関数 `truename' 内:
+/home/nz_tcoder/prog/gcl-1.0/o/../c/unixfsys.c:250: 警告: the `getwd' function is dangerous and should not be used.
+make[2]: ディレクトリ '/home/nz_tcoder/prog/gcl-1.0/unixport' から出ます
+
+```
+
+--
+
+## 最新状況
+saved_gcl
+```
+../xbin/if-exists saved_gcl "rm -f saved_gcl"
+cat init_gcl.lsp | \
+sed -e "s"DATE"Version(`cat ../majvers`.`cat ../minvers`) `date`g" \
+-e 'ssaved_gclsaved_gclg' \
+-e 'slinks t)links t)(setq compiler::*cc* "gcc -m32 -DVOL=volatile -I/home/nz_tcoder/prog/gcl-1.0/o -g")(si::build-symbol-table)g' \
+-e "sGCLDIR/home/nz_tcoder/prog/gcl-1.0g" \
+-e "s(defun lisp-imp(setq si::*gcl-version* '`cat ../minvers`)(defun lisp-imp'g" | \
+./raw_gcl ../unixport/ 
+GCL (GNU Common Lisp)  April 1994  16384 pages
+loading ../lsp/export.lsp
+loading ../lsp/defmacro.lsp
+loading ../lsp/evalmacros.lsp
+loading ../lsp/top.lsp
+
+Unrecoverable error: Segmentation violation..
+```
+
+---
+
+## さらにその後(2019.7.13追記)
+メモリ初期化時のエラーに関連するコードの抜粋は以下
+
+
+``` C
+#define DBEGIN 0 
+#define PAGEWIDTH 11
+#define MAXPAGE 16384
+
+int real_maxpage = MAXPAGE;
+
+#define page(p)	(((int)(((char *)(p))-DBEGIN)>>PAGEWIDTH))
+
+#define	available_pages	\
+	(real_maxpage-page(heap_end)-new_holepage-2*nrbpage-real_maxpage/32)
+```
+
+* `heap_end`をデバッガで調べると0x8128000。
+* `page(head_end)`が66128(dec)となるので、メモリの初期化をする時に`available_pages`がマイナスとなってしまう。
+
+
+
+---
+
+## ヒントを求めて...
+ubuntuのパッケージにはgclがあるので、1.0以降のソースを参考に調べた。
+
+```
+$ apt search gcl
+gcl/xenial 2.6.12-29 amd64
+  GNU Common Lisp コンパイラ
+
+```
+
+gcl-2.3の386-linux.hに以下の記述あり。
+
+```
+/* is #define ELF_TEXT_BASE 0x8000000   on current linux */
+#define ELF_TEXT_BASE  DBEGIN
+
+```
+
+ダメ元で
+
+```
+#define DBEGIN 0x8000000
+```
+
+を追加してみた ...
+
+--
+
+## `saved_gcl`
+```
+cat init_gcl.lsp | \
+sed -e "s"DATE"Version(`cat ../majvers`.`cat ../minvers`) `date`g" \
+-e 'ssaved_gclsaved_gclg' \
+-e 'slinks t)links t)(setq compiler::*cc* "gcc -m32 -DVOL=volatile -I/home/nz_tcoder/prog/gcl-1.0/o -g")(si::build-symbol-table)g' \
+-e "sGCLDIR/home/nz_tcoder/prog/gcl-1.0g" \
+-e "s(defun lisp-imp(setq si::*gcl-version* '`cat ../minvers`)(defun lisp-imp'g" | \
+./raw_gcl ../unixport/ 
+GCL (GNU Common Lisp)  April 1994  16384 pages
+loading ../lsp/export.lsp
+loading ../lsp/defmacro.lsp
+loading ../lsp/evalmacros.lsp
+loading ../lsp/top.lsp
+loading ../lsp/module.lsp
+loading ../lsp/autoload.lsp
+
+>#<"COMPILER" package>
+
+COMPILER>#<"SYSTEM" package>
+
+SYSTEM>*COMMAND-ARGS*
+
+SYSTEM>#<"USER" package>
+
+>#<"LISP" package>
+
+LISP>#<"SLOOP" package>
+
+SLOOP>6
+
+SLOOP>#<"USER" package>
+
+>loading ../lsp/predlib.lsp
+loading ../lsp/setf.lsp
+loading ../lsp/arraylib.lsp
+loading ../lsp/assert.lsp
+```
+
+となって終わらない。が、GCの中で落ちている気配はない。`raw_gcl`を動かしてみると ...
+
+--
+
+## `raw_gcl`
+```
+$ ./raw_gcl 
+GCL (GNU Common Lisp)  April 1994  16384 pages
+loading ../lsp/export.lsp
+loading ../lsp/defmacro.lsp
+loading ../lsp/evalmacros.lsp
+loading ../lsp/top.lsp
+loading ../lsp/module.lsp
+loading ../lsp/autoload.lsp
+
+>(setq x '(3 4))
+(3 4)
+
+>(car (cons 1 x))
+1
+```
+
+無事動いている。
+
+
+--
+
+## もう少し`saved_gcl`
+```
+>loading ../lsp/predlib.lsp
+loading ../lsp/setf.lsp
+loading ../lsp/arraylib.lsp
+loading ../lsp/assert.lsp
+```
+
+イメージをセーブする前の段階の`assert.lsp`をロードする時に固まっている。
+
+raw_gclから直接`(load "../lsp/predlib.lsp")`とかしてみると、`setf.lsp`で固まった。`raw_gcl`が正しくビルドはできていないのだろう。
+    </textarea>
+	</section>
+</div>
+</div>
+    
+<script src="../../lib/js/head.min.js"></script>
+<script src="../../js/reveal.js"></script>
+    
+<script>
+  // More info about config & dependencies:
+  // - https://github.com/hakimel/reveal.js#configuration
+  // - https://github.com/hakimel/reveal.js#dependencies
+  Reveal.initialize({
+  slideNumber:'c/t',
+  width:'100%',
+  heiht:'100%',
+  margin:0.1,
+  math: {
+  mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+  config: 'TeX-AMS_HTML-full'  // See http://docs.mathjax.org/en/latest/config-files.html
+  },
+  dependencies: [
+  { src: '../../plugin/math/math.js', async: true },
+  { src: '../../plugin/markdown/marked.js' },
+  { src: '../../plugin/markdown/markdown.js' },
+  { src: '../../plugin/notes/notes.js', async: true },
+  { src: '../../plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+  ]
+  });
+  
+  // centering img
+  Reveal.addEventListener( 'ready', function() {
+  Array.prototype.forEach.call(document.querySelectorAll('p img'),function(elm){
+  var parent = elm.parentNode;
+  parent.style.textAlign = 'center';
+  });
+  });
+</script>
+</body>
+</html>
